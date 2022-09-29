@@ -6,13 +6,7 @@ app.use(express.json());
 
 const menu = require("./menu.json")
 
-// const users = [
-//     {id: 1, name: "John Doe"},
-//     {id: 2, name: "Jane Smith"},
-//     {id: 3, name: "Marco Polo"},
-// ];
-
- app.get("/", (req, res) => {
+app.get("/", (req, res) => {
      res.send("API running OK ...")
  });
 
@@ -52,22 +46,18 @@ app.get("/bebidas", (req, res) =>{
 
 //Ejercicio 6
 app.post("/pedido", (req, res) =>{
-    const pedido = req.body;
-    const dishesOrdered = menu.filter((dish) => dish.id === pedido.id)
+    const pedido = req.body.productos;
     
-    console.log(dishesOrdered)
-    res.json(pedido)
+    const precio = pedido.reduce((precio_inicial, plato) =>{
+        const dishOrdered = menu.find((dish) => dish.id === plato.id);
+        precio_inicial += dishOrdered.precio * plato.cantidad;
+        return precio_inicial
+    }, 0);
+    
+    console.log(precio)
+    res.json({"msg": "Pedido recibido", "precio": precio})
 });
-// app.get("/users/:id", (req, res) =>{
-//     const id = parseInt(req.params.id);
-//     const user = users.find((user) => user.id === id);
 
-//     if(!user)
-//         res.status(404).send("User not found")
-//     else
-//         res.status(200).json(user)
-// });
-
- app.listen(port, () =>{
+app.listen(port, () =>{
     console.log(`> Server running on port ${port}`)
  });
