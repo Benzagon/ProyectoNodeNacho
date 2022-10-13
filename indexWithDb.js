@@ -9,7 +9,7 @@ const connection = mysql.createConnection({
     host: "localhost",
     user: "root",
     password: "rootroot",
-    database: "menu_restaurant",
+    database: "platos",
 });
 
 connection.connect((err) => {
@@ -22,8 +22,8 @@ connection.connect((err) => {
 });
 
 app.get("/", (req, res) => {
-     res.send("API running OK ...")
- });
+    res.send("API running OK ...")
+});
 
 //Ejercicio 1
 app.get("/menu", (req, res) => {
@@ -32,7 +32,7 @@ app.get("/menu", (req, res) => {
             console.error("Error consultando: " + err);
             return;
         }
-        
+
         console.log(rows);
         res.send(rows);
     });
@@ -40,75 +40,86 @@ app.get("/menu", (req, res) => {
 
 //Ejercicio 2
 app.get("/menu/:id", (req, res) => {
-    const id = parseInt(req.params.id); 
+    const id = parseInt(req.params.id);
     connection.query("SELECT * FROM platos WHERE id = ?", [id], (err, rows) => {
         if (err) {
             res.status(404).send("Dish not found...");
             console.error("Error consultando: " + err);
             return;
         }
-    
+
         console.log(rows);
         res.send(rows);
     });
 });
 
 //Ejercicio 3
-app.get("/principales", (req, res) =>{
+app.get("/principales", (req, res) => {
     connection.query("SELECT * FROM platos WHERE tipo = 'principal'", (err, rows) => {
         if (err) {
             console.error("Error consultando: " + err);
             return;
         }
-    
+
         console.log(rows);
         res.send(rows);
     });
 });
 
 //Ejercicio 4
-app.get("/postres", (req, res) =>{
+app.get("/postres", (req, res) => {
     connection.query("SELECT * FROM platos WHERE tipo = 'postre'", (err, rows) => {
         if (err) {
             console.error("Error consultando: " + err);
             return;
         }
-    
+
         console.log(rows);
         res.send(rows);
     });
 });
 
 //Ejercicio 5
-app.get("/bebidas", (req, res) =>{
+app.get("/bebidas", (req, res) => {
     connection.query("SELECT * FROM platos WHERE tipo = 'bebida'", (err, rows) => {
         if (err) {
             console.error("Error consultando: " + err);
             return;
         }
-    
+
         console.log(rows);
         res.send(rows);
     });
 });
 
 //Ejercicio 6
-app.post("/pedido", (req, res) =>{
+app.post("/pedido", (req, res) => {
     const pedido = req.body.productos;
-    connection.query("SELECT * FROM platos WHERE id = ?",[pedido.id], (err, rows) => {
+    const ids = pedido.map((e) => e.id);
+    const cantidades = pedido.map((e) => e.cantidad)
+
+    connection.query("SELECT precio FROM platos WHERE id IN (?)", [ids], (err, rows) => {
         if (err) {
             console.error("Error consultando: " + err);
             return;
         }
-    
-        console.log(rows);
-        res.send(rows);
+
+        const precio = rows.map((p, i) => p.precio * cantidades[i]).reduce(
+            (acc, el) => acc + el,
+            0
+        );
+
+        console.log(precio);
+        res.json({
+            precio,
+            msg: "e resivido tu pedido, grax :D"
+        });
     });
-    
-    console.log(precio)
-    res.json({"msg": "Pedido recibido", "precio": precio})
+
+    // console.log(precio)
+    // res.json({"msg": "Pedido recibido", "precio": precio})
 });
 
-app.listen(port, () =>{
+app.listen(port, () => {
     console.log(`> Server running on port ${port}`)
- });
+});
